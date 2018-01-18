@@ -17,7 +17,7 @@ class DragImageView : ImageView {
     private var mOriginX = 0f
     private var mDownX = 0f
     private var mDownY = 0f
-    private var isAnimating = false
+    var isAnimating = false
     private var mMyDragListener: MyDragListener? = null
 
     constructor(context: Context) : super(context) {
@@ -56,12 +56,12 @@ class DragImageView : ImageView {
 
         when (event?.action) {
             MotionEvent.ACTION_DOWN -> {
-                mDownX = event!!.x
-                mDownY = event!!.y
+                mDownX = event.x
+                mDownY = event.y
             }
             MotionEvent.ACTION_MOVE -> {
-                val dx = event!!.x - mDownX
-                val dy = event!!.y - mDownY
+                val dx = event.x - mDownX
+                val dy = event.y - mDownY
                 if (Math.abs(dx) > Math.abs(dy)) {
                     val l = left + dx.toInt()
                     val r = right + dx.toInt()
@@ -69,50 +69,55 @@ class DragImageView : ImageView {
 
                     mMyDragListener?.dragging()
                 } else {
-                    mDownX = event!!.x
-                    mDownY = event!!.y
+                    mDownX = event.x
+                    mDownY = event.y
                 }
             }
             MotionEvent.ACTION_UP -> {
                 val centerX = x + width / 2
                 isAnimating = true
-                if (centerX < mScreenWidth / 3.3) {
-                    //左滑
-                    mMyDragListener?.finish(true)
-                    animate().translationX(-width.toFloat())
-                            .setDuration(300)
-                            .setListener(object : AnimatorListenerAdapter() {
-                                override fun onAnimationEnd(animation: Animator?) {
-                                    super.onAnimationEnd(animation)
-                                    isAnimating = false
-                                    mMyDragListener?.finished()
-                                }
-                            })
+                when {
+                    centerX < mScreenWidth / 3.3 -> {
+                        //左滑
+                        mMyDragListener?.finish(true)
+                        animate().translationX(-width.toFloat())
+                                .setDuration(300)
+                                .setListener(object : AnimatorListenerAdapter() {
+                                    override fun onAnimationEnd(animation: Animator?) {
+                                        super.onAnimationEnd(animation)
+                                        isAnimating = false
+                                        mMyDragListener?.finished()
+                                    }
+                                })
 
-                } else if (centerX > mScreenWidth - mScreenWidth / 3.3) {
-                    //右滑
-                    mMyDragListener?.finish(false)
-                    animate().translationX(width.toFloat())
-                            .setDuration(300)
-                            .setListener(object : AnimatorListenerAdapter() {
-                                override fun onAnimationEnd(animation: Animator?) {
-                                    super.onAnimationEnd(animation)
-                                    isAnimating = false
-                                    mMyDragListener?.finished()
-                                }
-                            })
-                } else {
-                    //回滾
-                    mMyDragListener?.rollBack()
-                    animate().x(mOriginX)
-                            .setDuration(300)
-                            .setListener(object : AnimatorListenerAdapter() {
-                                override fun onAnimationEnd(animation: Animator?) {
-                                    super.onAnimationEnd(animation)
-                                    isAnimating = false
-                                }
-                            })
+                    }
+                    centerX > mScreenWidth - mScreenWidth / 3.3 -> {
+                        //右滑
+                        mMyDragListener?.finish(false)
+                        animate().translationX(width.toFloat())
+                                .setDuration(300)
+                                .setListener(object : AnimatorListenerAdapter() {
+                                    override fun onAnimationEnd(animation: Animator?) {
+                                        super.onAnimationEnd(animation)
+                                        isAnimating = false
+                                        mMyDragListener?.finished()
+                                    }
+                                })
+                    }
+                    else -> {
+                        //回滾
+                        mMyDragListener?.rollBack()
+                        animate().x(mOriginX)
+                                .setDuration(300)
+                                .setListener(object : AnimatorListenerAdapter() {
+                                    override fun onAnimationEnd(animation: Animator?) {
+                                        super.onAnimationEnd(animation)
+                                        isAnimating = false
+                                    }
+                                })
+                    }
                 }
+                performClick()
             }
         }
         return true

@@ -12,21 +12,21 @@ import android.widget.ImageView
 import android.widget.RelativeLayout
 
 class MainActivity : AppCompatActivity() {
-    val bitmapList = ArrayList<Bitmap>()
-    val dragImageViewList = ArrayList<DragImageView>()
-    lateinit var rlMainContainer: RelativeLayout
-    lateinit var ivMainAgree: ImageView
+    private val mBitmapList = ArrayList<Bitmap>()
+    private val mDragImageViewList = ArrayList<DragImageView>()
+    private lateinit var rlMainContainer: RelativeLayout
+    private lateinit var ivMainAgree: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        bitmapList.add(BitmapFactory.decodeResource(resources, R.drawable.i1))
-        bitmapList.add(BitmapFactory.decodeResource(resources, R.drawable.i2))
-        bitmapList.add(BitmapFactory.decodeResource(resources, R.drawable.i3))
-        bitmapList.add(BitmapFactory.decodeResource(resources, R.drawable.i4))
-        bitmapList.add(BitmapFactory.decodeResource(resources, R.drawable.i5))
-        bitmapList.add(BitmapFactory.decodeResource(resources, R.drawable.i6))
+        mBitmapList.add(BitmapFactory.decodeResource(resources, R.drawable.i1))
+        mBitmapList.add(BitmapFactory.decodeResource(resources, R.drawable.i2))
+        mBitmapList.add(BitmapFactory.decodeResource(resources, R.drawable.i3))
+        mBitmapList.add(BitmapFactory.decodeResource(resources, R.drawable.i4))
+        mBitmapList.add(BitmapFactory.decodeResource(resources, R.drawable.i5))
+        mBitmapList.add(BitmapFactory.decodeResource(resources, R.drawable.i6))
         initViews()
     }
 
@@ -35,48 +35,45 @@ class MainActivity : AppCompatActivity() {
         rlMainContainer = findViewById(R.id.rl_main_container)
         rlMainContainer.post {
             val firstDragImageView = DragImageView(this)
-            dragImageViewList.add(firstDragImageView)
+            mDragImageViewList.add(firstDragImageView)
             val secondDragImageView = DragImageView(this)
-            dragImageViewList.add(secondDragImageView)
+            mDragImageViewList.add(secondDragImageView)
 
+            mDragImageViewList[0].layoutParams = getFirstLayoutParams()
+            mDragImageViewList[1].layoutParams = getSecondLayoutParams()
 
-            dragImageViewList[0].layoutParams = getFirstLayoutParams()
-            dragImageViewList[1].layoutParams = getSecondLayoutParams()
+            mDragImageViewList[0].setImageBitmap(mBitmapList[0])
+            mDragImageViewList[1].setImageBitmap(mBitmapList[1])
 
-            dragImageViewList[0].setImageBitmap(bitmapList[0])
-            dragImageViewList[1].setImageBitmap(bitmapList[1])
+            mDragImageViewList[0].setMyDragListener(mMyDragListener)
+            mDragImageViewList[1].setMyDragListener(mMyDragListener)
 
-            dragImageViewList[0].setMyDragListener(myDragListener)
-            dragImageViewList[1].setMyDragListener(myDragListener)
-
-            rlMainContainer.addView(dragImageViewList[1])
-            rlMainContainer.addView(dragImageViewList[0])
+            rlMainContainer.addView(mDragImageViewList[1])
+            rlMainContainer.addView(mDragImageViewList[0])
         }
     }
 
-    fun getFirstLayoutParams(): RelativeLayout.LayoutParams {
+    private fun getFirstLayoutParams(): RelativeLayout.LayoutParams {
         val firstLayoutParams = RelativeLayout.LayoutParams((rlMainContainer.width * 0.8).toInt(), (rlMainContainer.height * 0.8).toInt())
         firstLayoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE)
         return firstLayoutParams
     }
 
-    fun getSecondLayoutParams(): RelativeLayout.LayoutParams {
+    private fun getSecondLayoutParams(): RelativeLayout.LayoutParams {
         val secondLayoutParams = RelativeLayout.LayoutParams((rlMainContainer.width * 0.4).toInt(), (rlMainContainer.height * 0.4).toInt())
         secondLayoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE)
         return secondLayoutParams
     }
 
-    val myDragListener = object : DragImageView.MyDragListener {
+    private val mMyDragListener = object : DragImageView.MyDragListener {
 
         override fun rollBack() {
         }
 
         override fun dragging() {
-
         }
 
         override fun finish(isAgree: Boolean) {
-
             if (isAgree)
                 ivMainAgree.setImageResource(R.drawable.yes)
             else
@@ -84,7 +81,7 @@ class MainActivity : AppCompatActivity() {
 
             showAgree()
 
-            if (dragImageViewList.size <= 1)
+            if (mDragImageViewList.size <= 1)
                 return
 
             val scaleAnimation = ScaleAnimation(1f, 2f, 1f, 2f,
@@ -92,52 +89,48 @@ class MainActivity : AppCompatActivity() {
 
             scaleAnimation.duration = 300
             scaleAnimation.setAnimationListener(object : Animation.AnimationListener {
-
                 override fun onAnimationRepeat(p0: Animation?) {
-
                 }
 
                 override fun onAnimationEnd(p0: Animation?) {
-                    dragImageViewList[1].clearAnimation()
-                    dragImageViewList[1].layoutParams = getFirstLayoutParams()
+                    mDragImageViewList[1].clearAnimation()
+                    mDragImageViewList[1].layoutParams = getFirstLayoutParams()
+                    mDragImageViewList[1].isAnimating = false
                 }
 
                 override fun onAnimationStart(p0: Animation?) {
                 }
-
             })
-            dragImageViewList[1].startAnimation(scaleAnimation)
-        }
-
-        private fun showAgree() {
-            ivMainAgree.animate().alpha(1f)
-                    .setDuration(300)
-                    .setListener(object : AnimatorListenerAdapter() {
-                        override fun onAnimationEnd(animation: Animator?) {
-                            super.onAnimationEnd(animation)
-                            ivMainAgree.animate().alpha(0f)
-                                    .setDuration(300)
-                        }
-
-                    })
+            mDragImageViewList[1].startAnimation(scaleAnimation)
+            mDragImageViewList[1].isAnimating = true
         }
 
         override fun finished() {
-            bitmapList.removeAt(0)
-            rlMainContainer.removeView(dragImageViewList[0])
-            dragImageViewList.removeAt(0)
+            mBitmapList.removeAt(0)
+            rlMainContainer.removeView(mDragImageViewList[0])
+            mDragImageViewList.removeAt(0)
 
-            if (bitmapList.size <= 1)
+            if (mBitmapList.size <= 1)
                 return
 
             val dragImageView = DragImageView(this@MainActivity)
-            dragImageViewList.add(dragImageView)
+            mDragImageViewList.add(dragImageView)
 
-            dragImageViewList[1].layoutParams = getSecondLayoutParams()
-            dragImageViewList[1].setImageBitmap(bitmapList[1])
-            dragImageViewList[1].setMyDragListener(this)
-            rlMainContainer.addView(dragImageViewList[1], 0)
+            mDragImageViewList[1].layoutParams = getSecondLayoutParams()
+            mDragImageViewList[1].setImageBitmap(mBitmapList[1])
+            mDragImageViewList[1].setMyDragListener(this)
+            rlMainContainer.addView(mDragImageViewList[1], 0)
         }
+    }
 
+    private fun showAgree() {
+        ivMainAgree.animate().alpha(1f)
+                .setDuration(300)
+                .setListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator?) {
+                        super.onAnimationEnd(animation)
+                        ivMainAgree.animate().alpha(0f).duration = 300
+                    }
+                })
     }
 }

@@ -6,8 +6,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.view.animation.Animation
-import android.view.animation.ScaleAnimation
 import android.widget.ImageView
 import android.widget.RelativeLayout
 
@@ -84,25 +82,7 @@ class MainActivity : AppCompatActivity() {
             if (mDragImageViewList.size <= 1)
                 return
 
-            val scaleAnimation = ScaleAnimation(1f, 2f, 1f, 2f,
-                    Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
-
-            scaleAnimation.duration = 300
-            scaleAnimation.setAnimationListener(object : Animation.AnimationListener {
-                override fun onAnimationRepeat(p0: Animation?) {
-                }
-
-                override fun onAnimationEnd(p0: Animation?) {
-                    mDragImageViewList[1].clearAnimation()
-                    mDragImageViewList[1].layoutParams = getFirstLayoutParams()
-                    mDragImageViewList[1].isAnimating = false
-                }
-
-                override fun onAnimationStart(p0: Animation?) {
-                }
-            })
-            mDragImageViewList[1].startAnimation(scaleAnimation)
-            mDragImageViewList[1].isAnimating = true
+            mDragImageViewList[1].scaleTo(2f)
         }
 
         override fun finished() {

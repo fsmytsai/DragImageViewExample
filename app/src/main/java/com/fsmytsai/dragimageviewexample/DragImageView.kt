@@ -9,6 +9,8 @@ import android.util.AttributeSet
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.MotionEvent
+import android.view.animation.Animation
+import android.view.animation.ScaleAnimation
 import android.widget.ImageView
 
 class DragImageView : ImageView {
@@ -17,7 +19,7 @@ class DragImageView : ImageView {
     private var mOriginX = 0f
     private var mDownX = 0f
     private var mDownY = 0f
-    var isAnimating = false
+    private var mIsAnimating = false
     private var mMyDragListener: MyDragListener? = null
 
     constructor(context: Context) : super(context) {
@@ -51,7 +53,7 @@ class DragImageView : ImageView {
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        if (mScreenWidth == 0 || isAnimating)
+        if (mScreenWidth == 0 || mIsAnimating)
             return false
 
         when (event?.action) {
@@ -75,7 +77,7 @@ class DragImageView : ImageView {
             }
             MotionEvent.ACTION_UP -> {
                 val centerX = x + width / 2
-                isAnimating = true
+                mIsAnimating = true
                 when {
                     centerX < mScreenWidth / 3.3 -> {
                         //左滑
@@ -85,7 +87,7 @@ class DragImageView : ImageView {
                                 .setListener(object : AnimatorListenerAdapter() {
                                     override fun onAnimationEnd(animation: Animator?) {
                                         super.onAnimationEnd(animation)
-                                        isAnimating = false
+                                        mIsAnimating = false
                                         mMyDragListener?.finished()
                                     }
                                 })
@@ -99,7 +101,7 @@ class DragImageView : ImageView {
                                 .setListener(object : AnimatorListenerAdapter() {
                                     override fun onAnimationEnd(animation: Animator?) {
                                         super.onAnimationEnd(animation)
-                                        isAnimating = false
+                                        mIsAnimating = false
                                         mMyDragListener?.finished()
                                     }
                                 })
@@ -112,7 +114,7 @@ class DragImageView : ImageView {
                                 .setListener(object : AnimatorListenerAdapter() {
                                     override fun onAnimationEnd(animation: Animator?) {
                                         super.onAnimationEnd(animation)
-                                        isAnimating = false
+                                        mIsAnimating = false
                                     }
                                 })
                     }
@@ -121,6 +123,29 @@ class DragImageView : ImageView {
             }
         }
         return true
+    }
+
+    fun scaleTo(to: Float) {
+        val scaleAnimation = ScaleAnimation(1f, to, 1f, to,
+                Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+
+        scaleAnimation.duration = 300
+        scaleAnimation.setAnimationListener(object : Animation.AnimationListener {
+            override fun onAnimationRepeat(p0: Animation?) {
+            }
+
+            override fun onAnimationEnd(p0: Animation?) {
+                clearAnimation()
+                layoutParams.width = (layoutParams.width * to).toInt()
+                layoutParams.height = (layoutParams.height * to).toInt()
+                mIsAnimating = false
+            }
+
+            override fun onAnimationStart(p0: Animation?) {
+            }
+        })
+        startAnimation(scaleAnimation)
+        mIsAnimating = true
     }
 
     fun setMyDragListener(myDragListener: MyDragListener) {
